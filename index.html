@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f7f3" />
+    <title>Nossa casa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <div class="eyebrow"><span class="home-mark">⌂</span> PLANEJAMENTO</div>
+        <div class="title-row">
+          <div><h1>Nossa casa</h1><p>Todo sonho começa por aqui.</p></div>
+          <button class="icon-button" id="manageCategories" aria-label="Gerenciar categorias">•••</button>
+        </div>
+      </header>
+
+      <section class="budget-card" aria-labelledby="budgetTitle">
+        <div class="budget-heading"><div><span id="budgetTitle">ORÇAMENTO DO LAR</span><strong id="budgetTotal">R$ 0,00</strong></div><span class="budget-icon">↗</span></div>
+        <div class="progress-track" aria-label="Progresso de compras"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="budget-labels"><span><i class="legend-dot spent"></i><b id="spentTotal">R$ 0,00</b> gastos</span><span id="progressText">0% concluído</span></div>
+      </section>
+
+      <section class="summary-grid" aria-label="Resumo das compras">
+        <article><span class="summary-icon pending-icon">◷</span><div><strong id="pendingCount">0</strong><span>para comprar</span></div></article>
+        <article><span class="summary-icon bought-icon">✓</span><div><strong id="boughtCount">0</strong><span>já comprados</span></div></article>
+      </section>
+
+      <section class="list-section">
+        <div class="section-heading"><div><span class="eyebrow">LISTA DE COMPRAS</span><h2>O que falta para o lar</h2></div><button class="add-button" id="openItemModal"><span>+</span> Adicionar</button></div>
+        <div class="filters" id="categoryFilters" aria-label="Filtrar por categoria"></div>
+        <div class="items-list" id="itemsList"></div>
+        <div class="empty-state" id="emptyState" hidden><div>⌂</div><h3>Comece a imaginar</h3><p>Adicione os primeiros itens para acompanhar os planos da casa.</p><button class="text-button" id="emptyAdd">Adicionar item</button></div>
+      </section>
+    </main>
+
+    <dialog id="itemDialog" class="dialog">
+      <form id="itemForm" method="dialog">
+        <div class="dialog-title"><div><span class="eyebrow" id="itemDialogEyebrow">NOVO ITEM</span><h2 id="itemDialogTitle">Adicionar à lista</h2></div><button type="button" class="close-button" data-close="itemDialog" aria-label="Fechar">×</button></div>
+        <input type="hidden" id="itemId" />
+        <label>Nome do item<input id="itemName" required placeholder="Ex.: Sofá da sala" maxlength="80" /></label>
+        <label>Categoria <span class="inline-action" id="newCategoryFromItem">+ nova</span><select id="itemCategory" required></select></label>
+        <label>Valor estimado<input id="itemValue" required inputmode="decimal" placeholder="0,00" /></label>
+        <label>Link do produto <span class="optional">opcional</span><input id="itemLink" type="url" placeholder="https://" /></label>
+        <label class="purchase-toggle"><input id="itemBought" type="checkbox" /><span class="toggle-control"></span><span>Já comprei este item</span></label>
+        <div class="dialog-actions"><button type="button" class="secondary-button" data-close="itemDialog">Cancelar</button><button class="primary-button" id="saveItem">Salvar item</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="categoryDialog" class="dialog small-dialog">
+      <form id="categoryForm" method="dialog">
+        <div class="dialog-title"><div><span class="eyebrow">CATEGORIAS</span><h2>Organize sua lista</h2></div><button type="button" class="close-button" data-close="categoryDialog" aria-label="Fechar">×</button></div>
+        <div class="category-create"><input id="categoryName" placeholder="Nova categoria" maxlength="32" /><button class="primary-button" type="submit">Criar</button></div>
+        <div class="category-manager" id="categoryManager"></div>
+      </form>
+    </dialog>
+    <div class="toast" id="toast" role="status"></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
