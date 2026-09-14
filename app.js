@@ -1,5 +1,27 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+const capturedErrors = [];
+const errorLog = document.querySelector("#errorLog");
+function captureError(error, context = "JavaScript") {
+  const details = error instanceof Error ? (error.stack || error.message) : String(error);
+  capturedErrors.unshift(`[${new Date().toLocaleTimeString("pt-BR")}] ${context}\n${details}`);
+  errorLog.textContent = capturedErrors.join("\n\n") || "Nenhum erro capturado ainda.";
+}
+window.addEventListener("error", (event) => captureError(event.error || event.message, "Erro não tratado"));
+window.addEventListener("unhandledrejection", (event) => captureError(event.reason, "Promise rejeitada"));
+
+document.querySelector("#openErrorModal").addEventListener("click", () => document.querySelector("#errorDialog").showModal());
+document.querySelector("#clearErrorLog").addEventListener("click", () => { capturedErrors.length = 0; errorLog.textContent = "Nenhum erro capturado ainda."; });
+document.querySelector("#copyErrorLog").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(errorLog.textContent); } catch (error) { captureError(error, "Cópia do log"); }
+});
+
+let initializeApp, getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy;
+try {
+  ({ initializeApp } = await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"));
+  ({ getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js"));
+} catch (error) {
+  captureError(error, "Carregamento do Firebase");
+  throw error;
+}
 
 const firebaseConfig = {
   apiKey: "AIzaSyDdjJzIrB9LvsIq9zLNUf36ajxacl5KZ9U",
