@@ -70,7 +70,7 @@ function render() {
   const filtered = activeCategory === "all" ? items : items.filter((item) => item.categoryId === activeCategory);
   els.items.innerHTML = filtered.map((item) => `<article class="item-card ${item.bought ? "is-bought" : ""}">
     <button class="status-button" data-toggle="${item.id}" aria-label="${item.bought ? "Marcar como não comprado" : "Marcar como comprado"}">${item.bought ? "✓" : ""}</button>
-    <div class="item-body"><div class="item-name">${escapeHtml(item.name)}</div><div class="item-meta"><span class="category-pill">${escapeHtml(itemCategoryName(item))}</span>${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener" title="Abrir produto">ver link ↗</a>` : ""}</div></div>
+    <div class="item-body"><div class="item-name">${escapeHtml(item.name)}</div><div class="item-meta"><span class="category-pill">${escapeHtml(itemCategoryName(item))}</span>${item.link ? `<a class="item-link" href="${escapeHtml(item.link)}" target="_blank" rel="noopener" aria-label="Abrir produto ${escapeHtml(item.name)} em uma nova aba"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5a4 4 0 0 0 5.66.08l2-2a4 4 0 0 0-5.66-5.66l-1.15 1.15M13.5 10.5a4 4 0 0 0-5.66-.08l-2 2a4 4 0 0 0 5.66 5.66l1.14-1.14"/></svg><span>Ver produto</span><svg class="external-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></a>` : ""}</div></div>
     <span class="item-value">${money.format(item.value)}</span><button class="item-menu" data-edit="${item.id}" aria-label="Editar ${escapeHtml(item.name)}">⋮</button>
   </article>`).join("");
   els.empty.hidden = items.length !== 0;
