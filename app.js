@@ -38,10 +38,11 @@ const $ = (selector) => document.querySelector(selector);
 const els = {
   budgetTotal: $("#budgetTotal"), spentTotal: $("#spentTotal"), progressFill: $("#progressFill"), progressText: $("#progressText"),
   pendingCount: $("#pendingCount"), boughtCount: $("#boughtCount"), filters: $("#categoryFilters"), items: $("#itemsList"), empty: $("#emptyState"),
-  itemDialog: $("#itemDialog"), itemForm: $("#itemForm"), itemId: $("#itemId"), itemName: $("#itemName"), itemCategory: $("#itemCategory"), itemValue: $("#itemValue"), itemLink: $("#itemLink"), itemBought: $("#itemBought"),
+  itemDialog: $("#itemDialog"), itemForm: $("#itemForm"), itemId: $("#itemId"), itemName: $("#itemName"), itemCategory: $("#itemCategory"), itemPriority: $("#itemPriority"), itemValue: $("#itemValue"), itemLink: $("#itemLink"), itemBought: $("#itemBought"), itemSearch: $("#itemSearch"),
   categoryDialog: $("#categoryDialog"), categoryForm: $("#categoryForm"), categoryName: $("#categoryName"), categoryManager: $("#categoryManager"), toast: $("#toast")
 };
 let items = [], categories = [], activeCategory = "all";
+const priorities = { necessary: { label: "Necessário", order: 0 }, before_move: { label: "Antes da mudança", order: 1 }, after_move: { label: "Depois da mudança", order: 2 } };
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function showToast(message) {
@@ -57,6 +58,7 @@ function valueFromInput(value) {
 function formatInput(value) { return value ? money.format(value).replace("R$", "").trim() : ""; }
 function escapeHtml(value = "") { const div = document.createElement("div"); div.textContent = value; return div.innerHTML; }
 function itemCategoryName(item) { return categories.find((category) => category.id === item.categoryId)?.name || "Sem categoria"; }
+function itemPriority(item) { return priorities[item.priority] || priorities.necessary; }
 
 function render() {
   const total = items.reduce((sum, item) => sum + Number(item.value || 0), 0);
@@ -67,13 +69,17 @@ function render() {
   els.progressFill.style.width = `${progress}%`; els.progressText.textContent = `${progress}% concluído`;
   els.pendingCount.textContent = items.length - purchased; els.boughtCount.textContent = purchased;
   els.filters.innerHTML = `<button class="filter ${activeCategory === "all" ? "active" : ""}" data-category="all">Todos <b>${items.length}</b></button>` + categories.map((category) => `<button class="filter ${activeCategory === category.id ? "active" : ""}" data-category="${category.id}">${escapeHtml(category.name)} <b>${items.filter((item) => item.categoryId === category.id).length}</b></button>`).join("");
-  const filtered = activeCategory === "all" ? items : items.filter((item) => item.categoryId === activeCategory);
+  const search = els.itemSearch.value.trim().toLocaleLowerCase("pt-BR");
+  const filtered = items
+    .filter((item) => activeCategory === "all" || item.categoryId === activeCategory)
+    .filter((item) => !search || item.name.toLocaleLowerCase("pt-BR").includes(search) || itemCategoryName(item).toLocaleLowerCase("pt-BR").includes(search))
+    .sort((a, b) => itemPriority(a).order - itemPriority(b).order);
   els.items.innerHTML = filtered.map((item) => `<article class="item-card ${item.bought ? "is-bought" : ""}">
     <button class="status-button" data-toggle="${item.id}" aria-label="${item.bought ? "Marcar como não comprado" : "Marcar como comprado"}">${item.bought ? "✓" : ""}</button>
-    <div class="item-body"><div class="item-name">${escapeHtml(item.name)}</div><div class="item-meta"><span class="category-pill">${escapeHtml(itemCategoryName(item))}</span>${item.link ? `<a class="item-link" href="${escapeHtml(item.link)}" target="_blank" rel="noopener" aria-label="Abrir produto ${escapeHtml(item.name)} em uma nova aba"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5a4 4 0 0 0 5.66.08l2-2a4 4 0 0 0-5.66-5.66l-1.15 1.15M13.5 10.5a4 4 0 0 0-5.66-.08l-2 2a4 4 0 0 0 5.66 5.66l1.14-1.14"/></svg><span>Ver produto</span><svg class="external-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></a>` : ""}</div></div>
+    <div class="item-body"><div class="item-name">${escapeHtml(item.name)}</div><div class="item-meta"><span class="category-pill">${escapeHtml(itemCategoryName(item))}</span><span class="priority-pill priority-${item.priority || "necessary"}">${itemPriority(item).label}</span>${item.link ? `<a class="item-link" href="${escapeHtml(item.link)}" target="_blank" rel="noopener" aria-label="Abrir produto ${escapeHtml(item.name)} em uma nova aba"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5a4 4 0 0 0 5.66.08l2-2a4 4 0 0 0-5.66-5.66l-1.15 1.15M13.5 10.5a4 4 0 0 0-5.66-.08l-2 2a4 4 0 0 0 5.66 5.66l1.14-1.14"/></svg><span>Ver produto</span><svg class="external-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></a>` : ""}</div></div>
     <span class="item-value">${money.format(item.value)}</span><button class="item-menu" data-edit="${item.id}" aria-label="Editar ${escapeHtml(item.name)}">⋮</button>
   </article>`).join("");
-  els.empty.hidden = items.length !== 0;
+  els.empty.hidden = filtered.length !== 0;
 }
 
 function renderCategoryOptions(selected = "") {
@@ -88,7 +94,7 @@ function openItem(item) {
   $("#itemDialogEyebrow").textContent = item ? "EDITAR ITEM" : "NOVO ITEM";
   $("#itemDialogTitle").textContent = item ? "Atualize os detalhes" : "Adicionar à lista";
   els.itemName.value = item?.name || ""; renderCategoryOptions(item?.categoryId || categories[0].id);
-  els.itemValue.value = item ? formatInput(item.value) : ""; els.itemLink.value = item?.link || ""; els.itemBought.checked = item?.bought || false;
+  els.itemPriority.value = item?.priority || "necessary"; els.itemValue.value = item ? formatInput(item.value) : ""; els.itemLink.value = item?.link || ""; els.itemBought.checked = item?.bought || false;
   els.itemDialog.showModal(); els.itemName.focus();
 }
 
@@ -116,12 +122,13 @@ $("#newCategoryFromItem").addEventListener("click", () => els.categoryDialog.sho
 document.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => $("#" + button.dataset.close).close()));
 els.itemValue.addEventListener("blur", () => { const value = valueFromInput(els.itemValue.value); if (value) els.itemValue.value = formatInput(value); });
 els.itemForm.addEventListener("submit", async (event) => {
-  event.preventDefault(); const payload = { name: els.itemName.value.trim(), categoryId: els.itemCategory.value, value: valueFromInput(els.itemValue.value), link: els.itemLink.value.trim(), bought: els.itemBought.checked };
+  event.preventDefault(); const payload = { name: els.itemName.value.trim(), categoryId: els.itemCategory.value, priority: els.itemPriority.value, value: valueFromInput(els.itemValue.value), link: els.itemLink.value.trim(), bought: els.itemBought.checked };
   if (!payload.name || !payload.value) { showToast("Informe um nome e um valor válido."); return; }
   try { if (els.itemId.value) await updateDoc(doc(db, "items", els.itemId.value), payload); else await addDoc(collection(db, "items"), { ...payload, createdAt: Date.now() }); els.itemDialog.close(); showToast("Item salvo na sua lista."); } catch { showToast("Não foi possível salvar no Firebase."); }
 });
 els.categoryForm.addEventListener("submit", async (event) => { event.preventDefault(); try { await createCategory(els.categoryName.value); } catch { showToast("Não foi possível criar a categoria."); } });
 els.filters.addEventListener("click", (event) => { const button = event.target.closest("[data-category]"); if (button) { activeCategory = button.dataset.category; render(); } });
+els.itemSearch.addEventListener("input", render);
 els.items.addEventListener("click", async (event) => { const toggle = event.target.closest("[data-toggle]"), edit = event.target.closest("[data-edit]"); try { if (toggle) { const item = items.find((entry) => entry.id === toggle.dataset.toggle); await updateDoc(doc(db, "items", item.id), { bought: !item.bought }); } if (edit) openItem(items.find((entry) => entry.id === edit.dataset.edit)); } catch { showToast("Não foi possível atualizar o item."); } });
 els.categoryManager.addEventListener("click", async (event) => { const button = event.target.closest("[data-delete-category]"); if (!button) return; const categoryId = button.dataset.deleteCategory; if (items.some((item) => item.categoryId === categoryId)) { showToast("Mova os itens desta categoria antes de excluí-la."); return; } try { await deleteDoc(doc(db, "categories", categoryId)); if (activeCategory === categoryId) activeCategory = "all"; showToast("Categoria excluída."); } catch { showToast("Não foi possível excluir a categoria."); } });
 subscribe();

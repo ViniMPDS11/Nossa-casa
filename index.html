@@ -33,7 +33,10 @@
 
       <section class="list-section">
         <div class="section-heading"><div><span class="eyebrow">LISTA DE COMPRAS</span><h2>O que falta para o lar</h2></div><button class="add-button" id="openItemModal"><span>+</span> Adicionar</button></div>
-        <div class="filters" id="categoryFilters" aria-label="Filtrar por categoria"></div>
+        <div class="list-controls">
+          <label class="search-field" for="itemSearch"><span aria-hidden="true">⌕</span><input id="itemSearch" type="search" placeholder="Buscar item" autocomplete="off" /></label>
+          <div class="filters" id="categoryFilters" aria-label="Filtrar por categoria"></div>
+        </div>
         <div class="items-list" id="itemsList"></div>
         <div class="empty-state" id="emptyState" hidden><div>⌂</div><h3>Comece a imaginar</h3><p>Adicione os primeiros itens para acompanhar os planos da casa.</p><button class="text-button" id="emptyAdd">Adicionar item</button></div>
       </section>
@@ -45,6 +48,7 @@
         <input type="hidden" id="itemId" />
         <label>Nome do item<input id="itemName" required placeholder="Ex.: Sofá da sala" maxlength="80" /></label>
         <label>Categoria <span class="inline-action" id="newCategoryFromItem">+ nova</span><select id="itemCategory" required></select></label>
+        <label>Prioridade de compra<select id="itemPriority" required><option value="necessary">Necessário</option><option value="before_move">Antes da mudança</option><option value="after_move">Depois da mudança</option></select></label>
         <label>Valor estimado<input id="itemValue" required inputmode="decimal" placeholder="0,00" /></label>
         <label>Link do produto <span class="optional">opcional</span><input id="itemLink" type="url" placeholder="https://" /></label>
         <label class="purchase-toggle"><input id="itemBought" type="checkbox" /><span class="toggle-control"></span><span>Já comprei este item</span></label>
